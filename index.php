@@ -7,7 +7,7 @@ require_once "models/TopUpPremium.php";
 $database = new Database();
 $db = $database->getConnection();
 
-// Mengambil data mentah dari database menggunakan metode statis
+// Mengambil data mentah dari database
 $dataReguler = TopUpReguler::getDaftarReguler($db);
 $dataLangganan = TopUpLangganan::getDaftarLangganan($db);
 $dataPremium = TopUpPremium::getDaftarPremium($db);
@@ -69,23 +69,41 @@ foreach ($dataPremium as $row) {
         .btn-topup { background: #f59e0b; color: #fff; border: none; padding: 8px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; width: 100%; }
         .btn-topup:hover { background: #d97706; }
 
-        /* Tables for Transaction OOP */
-        .table-wrapper { background: #1e293b; border-radius: 12px; overflow: hidden; margin-bottom: 40px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); border: 1px solid #334155; }
+        /* Dashboard Layout (SIDEBAR & CONTENT) */
+        .dashboard-wrapper { display: flex; gap: 30px; align-items: flex-start; margin-top: 20px; }
+        
+        /* Sidebar Tabs */
+        .tab-container { display: flex; flex-direction: column; gap: 12px; min-width: 250px; }
+        .tab-btn { background: #1e293b; color: #94a3b8; border: 2px solid transparent; padding: 15px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s ease; font-size: 15px; text-align: left; }
+        .tab-btn:hover { background: #334155; color: #fff; transform: translateX(5px); }
+        
+        /* Active Tab Colors */
+        .tab-btn.active-reguler { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border-left: 4px solid #3b82f6; box-shadow: 0 0 10px rgba(59, 130, 246, 0.2); }
+        .tab-btn.active-langganan { background: rgba(16, 185, 129, 0.2); color: #34d399; border-left: 4px solid #10b981; box-shadow: 0 0 10px rgba(16, 185, 129, 0.2); }
+        .tab-btn.active-premium { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-left: 4px solid #f59e0b; box-shadow: 0 0 10px rgba(245, 158, 11, 0.2); }
+
+        /* Tab Content Area */
+        .tab-content-area { flex-grow: 1; width: 100%; overflow-x: auto; }
+        .tab-content { display: none; animation: fadeEffect 0.4s ease-in-out; }
+        @keyframes fadeEffect { from { opacity: 0; transform: translateX(15px); } to { opacity: 1; transform: translateX(0); } }
+
+        /* Tables */
+        .table-wrapper { background: #1e293b; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.2); border: 1px solid #334155; }
         table { width: 100%; border-collapse: collapse; text-align: left; }
         th, td { padding: 15px 20px; border-bottom: 1px solid #334155; font-size: 14px; }
         th { background-color: #0f172a; color: #94a3b8; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; }
         tr:hover { background-color: #2dd4bf1a; }
         
-        /* Badges & Colors */
-        .badge { padding: 5px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
-        .bg-reguler { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid #3b82f6; }
-        .bg-langganan { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #10b981; }
-        .bg-premium { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid #f59e0b; }
+        /* Typography & Helpers */
         .total-harga { font-weight: 800; color: #10b981; }
         code { background: #0f172a; padding: 3px 6px; border-radius: 4px; color: #f472b6; font-family: monospace; }
+        footer { text-align: center; padding: 20px; color: #64748b; font-size: 13px; margin-top: 40px; border-top: 1px solid #334155; }
         
-        /* Footer */
-        footer { text-align: center; padding: 20px; color: #64748b; font-size: 13px; margin-top: 20px; border-top: 1px solid #334155; }
+        /* Responsive (Agar rapi di layar kecil) */
+        @media (max-width: 768px) {
+            .dashboard-wrapper { flex-direction: column; }
+            .tab-container { min-width: 100%; }
+        }
     </style>
 </head>
 <body>
@@ -133,85 +151,112 @@ foreach ($dataPremium as $row) {
             </div>
         </div>
 
-        <h2 class="section-title" style="margin-top: 40px;">Riwayat Transaksi Langsung (Live OOP Data)</h2>
+        <h2 class="section-title" style="margin-top: 40px;">Riwayat Transaksi (Live OOP Data)</h2>
 
-        <div class="table-wrapper">
-            <table>
-                <tr>
-                    <th colspan="7"><span class="badge bg-reguler">Tier: Top-Up Reguler</span></th>
-                </tr>
-                <tr>
-                    <th>ID</th><th>Nama Pembeli</th><th>ID Akun (Server)</th><th>Jml</th><th>Harga Paket</th><th>Fasilitas & Bonus</th><th>Total Bayar</th>
-                </tr>
-                <?php foreach ($listTransaksi as $tx): ?>
-                    <?php if ($tx instanceof TopUpReguler): ?>
-                    <tr>
-                        <td>#<?= $tx->getIdTransaksi(); ?></td>
-                        <td><?= $tx->getNamaPembeli(); ?></td>
-                        <td><code><?= $tx->getIdAkunGame(); ?></code></td>
-                        <td><?= $tx->getJumlahItem(); ?> Item</td>
-                        <td>Rp <?= number_format($tx->getHargaDasarPaket(), 0, ',', '.'); ?></td>
-                        <td><?= $tx->getDetailBonus(); ?></td>
-                        <td class="total-harga">Rp <?= number_format($tx->hitungTotalBayar(), 0, ',', '.'); ?></td>
-                    </tr>
-                    <?php endif; ?>
-                <?php endforeach; ?>
-            </table>
-        </div>
+        <div class="dashboard-wrapper">
+            
+            <div class="tab-container">
+                <button class="tab-btn" id="btn-reguler" onclick="bukaTab(event, 'tab-reguler', 'active-reguler')">🔵 Top-Up Reguler</button>
+                <button class="tab-btn" id="btn-langganan" onclick="bukaTab(event, 'tab-langganan', 'active-langganan')">🟢 Langganan Pass</button>
+                <button class="tab-btn" id="btn-premium" onclick="bukaTab(event, 'tab-premium', 'active-premium')">🟠 Premium / VIP</button>
+            </div>
 
-        <div class="table-wrapper">
-            <table>
-                <tr>
-                    <th colspan="7"><span class="badge bg-langganan">Tier: Langganan Pass</span></th>
-                </tr>
-                <tr>
-                    <th>ID</th><th>Nama Pembeli</th><th>ID Akun (Server)</th><th>Durasi</th><th>Harga per Bulan</th><th>Fasilitas & Bonus</th><th>Total Bayar</th>
-                </tr>
-                <?php foreach ($listTransaksi as $tx): ?>
-                    <?php if ($tx instanceof TopUpLangganan): ?>
-                    <tr>
-                        <td>#<?= $tx->getIdTransaksi(); ?></td>
-                        <td><?= $tx->getNamaPembeli(); ?></td>
-                        <td><code><?= $tx->getIdAkunGame(); ?></code></td>
-                        <td><?= $tx->getJumlahItem(); ?>x Pas</td>
-                        <td>Rp <?= number_format($tx->getHargaDasarPaket(), 0, ',', '.'); ?></td>
-                        <td><?= $tx->getDetailBonus(); ?></td>
-                        <td class="total-harga">Rp <?= number_format($tx->hitungTotalBayar(), 0, ',', '.'); ?></td>
-                    </tr>
-                    <?php endif; ?>
-                <?php endforeach; ?>
-            </table>
-        </div>
+            <div class="tab-content-area">
+                
+                <div id="tab-reguler" class="tab-content table-wrapper">
+                    <table>
+                        <tr>
+                            <th>ID</th><th>Nama Pembeli</th><th>ID Akun (Server)</th><th>Jml</th><th>Harga Paket</th><th>Fasilitas & Bonus</th><th>Total Bayar</th>
+                        </tr>
+                        <?php foreach ($listTransaksi as $tx): ?>
+                            <?php if ($tx instanceof TopUpReguler): ?>
+                            <tr>
+                                <td>#<?= $tx->getIdTransaksi(); ?></td>
+                                <td><?= $tx->getNamaPembeli(); ?></td>
+                                <td><code><?= $tx->getIdAkunGame(); ?></code></td>
+                                <td><?= $tx->getJumlahItem(); ?> Item</td>
+                                <td>Rp <?= number_format($tx->getHargaDasarPaket(), 0, ',', '.'); ?></td>
+                                <td><?= $tx->getDetailBonus(); ?></td>
+                                <td class="total-harga">Rp <?= number_format($tx->hitungTotalBayar(), 0, ',', '.'); ?></td>
+                            </tr>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </table>
+                </div>
 
-        <div class="table-wrapper">
-            <table>
-                <tr>
-                    <th colspan="7"><span class="badge bg-premium">Tier: Premium / VIP</span></th>
-                </tr>
-                <tr>
-                    <th>ID</th><th>Nama Pembeli</th><th>ID Akun (Server)</th><th>Jml</th><th>Harga Paket</th><th>Fasilitas & Bonus</th><th>Total Bayar</th>
-                </tr>
-                <?php foreach ($listTransaksi as $tx): ?>
-                    <?php if ($tx instanceof TopUpPremium): ?>
-                    <tr>
-                        <td>#<?= $tx->getIdTransaksi(); ?></td>
-                        <td><?= $tx->getNamaPembeli(); ?></td>
-                        <td><code><?= $tx->getIdAkunGame(); ?></code></td>
-                        <td><?= $tx->getJumlahItem(); ?> Paket</td>
-                        <td>Rp <?= number_format($tx->getHargaDasarPaket(), 0, ',', '.'); ?></td>
-                        <td><?= $tx->getDetailBonus(); ?></td>
-                        <td class="total-harga">Rp <?= number_format($tx->hitungTotalBayar(), 0, ',', '.'); ?></td>
-                    </tr>
-                    <?php endif; ?>
-                <?php endforeach; ?>
-            </table>
-        </div>
+                <div id="tab-langganan" class="tab-content table-wrapper">
+                    <table>
+                        <tr>
+                            <th>ID</th><th>Nama Pembeli</th><th>ID Akun (Server)</th><th>Durasi</th><th>Harga per Bulan</th><th>Fasilitas & Bonus</th><th>Total Bayar</th>
+                        </tr>
+                        <?php foreach ($listTransaksi as $tx): ?>
+                            <?php if ($tx instanceof TopUpLangganan): ?>
+                            <tr>
+                                <td>#<?= $tx->getIdTransaksi(); ?></td>
+                                <td><?= $tx->getNamaPembeli(); ?></td>
+                                <td><code><?= $tx->getIdAkunGame(); ?></code></td>
+                                <td><?= $tx->getJumlahItem(); ?>x Pas</td>
+                                <td>Rp <?= number_format($tx->getHargaDasarPaket(), 0, ',', '.'); ?></td>
+                                <td><?= $tx->getDetailBonus(); ?></td>
+                                <td class="total-harga">Rp <?= number_format($tx->hitungTotalBayar(), 0, ',', '.'); ?></td>
+                            </tr>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </table>
+                </div>
 
-    </div>
+                <div id="tab-premium" class="tab-content table-wrapper">
+                    <table>
+                        <tr>
+                            <th>ID</th><th>Nama Pembeli</th><th>ID Akun (Server)</th><th>Jml</th><th>Harga Paket</th><th>Fasilitas & Bonus</th><th>Total Bayar</th>
+                        </tr>
+                        <?php foreach ($listTransaksi as $tx): ?>
+                            <?php if ($tx instanceof TopUpPremium): ?>
+                            <tr>
+                                <td>#<?= $tx->getIdTransaksi(); ?></td>
+                                <td><?= $tx->getNamaPembeli(); ?></td>
+                                <td><code><?= $tx->getIdAkunGame(); ?></code></td>
+                                <td><?= $tx->getJumlahItem(); ?> Paket</td>
+                                <td>Rp <?= number_format($tx->getHargaDasarPaket(), 0, ',', '.'); ?></td>
+                                <td><?= $tx->getDetailBonus(); ?></td>
+                                <td class="total-harga">Rp <?= number_format($tx->hitungTotalBayar(), 0, ',', '.'); ?></td>
+                            </tr>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </table>
+                </div>
+
+            </div> </div> </div>
 
     <footer>
         &copy; 2026 AFAN STORE | Proyek Simulasi PBO - Sistem Reservasi & Manajemen Database
     </footer>
+
+    <script>
+        function bukaTab(evt, namaTab, kelasAktif) {
+            // Sembunyikan semua konten tab
+            let i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+
+            // Hapus kelas aktif dari semua tombol tab
+            tablinks = document.getElementsByClassName("tab-btn");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active-reguler", "");
+                tablinks[i].className = tablinks[i].className.replace(" active-langganan", "");
+                tablinks[i].className = tablinks[i].className.replace(" active-premium", "");
+            }
+
+            // Tampilkan tab yang dipilih dan tambahkan kelas aktif ke tombol yang ditekan
+            document.getElementById(namaTab).style.display = "block";
+            evt.currentTarget.className += " " + kelasAktif;
+        }
+
+        // Jalankan klik pada tab reguler secara default saat halaman dimuat
+        document.getElementById("btn-reguler").click();
+    </script>
 
 </body>
 </html>
